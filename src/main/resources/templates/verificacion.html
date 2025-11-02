@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Verificación - FoodIx</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Satisfy&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<!-- Barra de Navegación -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="/" th:href="@{/}">FoodIx</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menuNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/tutorial" th:href="@{/tutorial}">Tutorial</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/login" th:href="@{/login}">Iniciar Sesión</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/contacto" th:href="@{/contacto}">Contacto</a>
+                </li>             
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Contenido Principal -->
+<main style="padding-top: 80px; min-height: 100vh; background: linear-gradient(360deg, #FFD700 0%, #a0002a 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="card shadow-lg mt-5">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <h2 class="fw-bold">Verificación</h2>
+                            <p class="text-muted">Verifica tu correo electrónico</p>
+                        </div>
+
+                        <!-- Mensajes de notificación -->
+                        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <span th:text="${message}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${error}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <!-- Formulario de correo electrónico -->
+                        <form id="emailForm" action="/auth/send-code" th:action="@{/auth/send-code}" method="post" class="needs-validation">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Correo Electrónico</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                <i class="fas fa-paper-plane"></i> Enviar código
+                            </button>
+                        </form>
+
+                        <!-- Formulario de verificación (inicialmente oculto) -->
+                        <form id="verificationForm" action="/auth/verify-code" th:action="@{/auth/verify-code}" method="post" class="needs-validation" style="display: none;">
+                            <div class="mb-3">
+                                <label for="code" class="form-label">Código de Verificación</label>
+                                <input type="text" class="form-control" id="code" name="code" required 
+                                       pattern="[0-9]{6}" maxlength="6" placeholder="Ingrese el código de 6 dígitos">
+                                <div class="form-text">
+                                    Ingrese el código enviado a su correo electrónico
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                <i class="fas fa-check"></i> Verificar código
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary w-100" onclick="showEmailForm()">
+                                <i class="fas fa-envelope"></i> Cambiar correo
+                            </button>
+                        </form>
+
+                        <!-- Enlace para volver -->
+                        <div class="text-center mt-3">
+                            <a href="/login" th:href="@{/login}" class="text-decoration-none">
+                                <i class="fas fa-arrow-left"></i> Volver al inicio de sesión
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Modal de envío de código -->
+<div class="modal fade" id="codeModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="codeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <i class="fas fa-envelope-open-text fa-3x text-primary mb-3"></i>
+                <h5 class="modal-title mb-3" id="codeModalLabel">Se ha enviado el código a su correo</h5>
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 mb-0 text-muted">Por favor, revise su bandeja de entrada</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Función para mostrar el formulario de verificación y ocultar el de correo
+    function showVerificationForm() {
+        document.getElementById('emailForm').style.display = 'none';
+        document.getElementById('verificationForm').style.display = 'block';
+    }
+
+    // Función para mostrar el formulario de correo y ocultar el de verificación
+    function showEmailForm() {
+        document.getElementById('emailForm').style.display = 'block';
+        document.getElementById('verificationForm').style.display = 'none';
+    }
+
+    // Función para mostrar mensajes de error
+    function showError(message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            <span>${message}</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.card-body').insertBefore(alertDiv, document.querySelector('form'));
+    }
+
+    // Variable para almacenar la referencia al modal
+    let codeModal = null;
+
+    // Función para mostrar el modal
+    function showCodeSentModal() {
+        if (!codeModal) {
+            codeModal = new bootstrap.Modal(document.getElementById('codeModal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
+        codeModal.show();
+    }
+
+    // Función para ocultar el modal
+    function hideCodeSentModal() {
+        if (codeModal) {
+            codeModal.hide();
+        }
+    }
+
+    // Escuchar el envío del formulario de correo
+    document.getElementById('emailForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        
+        // Mostrar el modal antes de hacer la petición
+        showCodeSentModal();
+        
+        fetch('/auth/send-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `email=${encodeURIComponent(email)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Esperar 2 segundos antes de mostrar el formulario de verificación
+                setTimeout(() => {
+                    hideCodeSentModal();
+                    showVerificationForm();
+                }, 2000);
+            } else {
+                hideCodeSentModal();
+                showError(data.error || 'Error al enviar el código');
+            }
+        })
+        .catch(error => {
+            hideCodeSentModal();
+            showError('Error de conexión');
+        });
+    });
+
+    // Escuchar el envío del formulario de verificación
+    document.getElementById('verificationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const code = document.getElementById('code').value;
+        
+        fetch('/auth/verify-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `code=${encodeURIComponent(code)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.redirectUrl) {
+                    const email = document.getElementById('email').value;
+                    window.location.href = data.redirectUrl + '?email=' + encodeURIComponent(email);
+                }
+            } else {
+                showError(data.error || 'Código inválido');
+            }
+        })
+        .catch(error => {
+            showError('Error de conexión');
+        });
+    });
+</script>
+</body>
+</html>
