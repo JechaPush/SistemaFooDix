@@ -19,24 +19,24 @@ public class ProvinciaJdbcRepository {
     
     private final RowMapper<Provincia> rowMapper = (rs, rowNum) -> {
         Provincia prov = new Provincia();
-        prov.setCodigo(rs.getLong("Codigo"));
-        prov.setNombre(rs.getString("Nombre"));
-        prov.setCodigoDepartamento(rs.getLong("CodigoDepartamento"));
-        prov.setEstado(rs.getBoolean("Estado"));
+        prov.setCodigo(rs.getLong("codigo"));
+        prov.setNombre(rs.getString("nombre"));
+        prov.setCodigoDepartamento(rs.getLong("codigo_departamento"));
+        prov.setEstado(rs.getBoolean("estado"));
         return prov;
     };
     
     public List<Provincia> findByDepartamento(Long codigoDepartamento) {
-        // Usar los nombres EXACTOS de las columnas como están en la base de datos
-        String sql = "SELECT Codigo, Nombre, CodigoDepartamento, Estado " +
+        // Usar los nombres de las columnas en minúsculas (snake_case en MySQL)
+        String sql = "SELECT codigo, nombre, codigo_departamento, estado " +
                     "FROM provincia " +
-                    "WHERE CodigoDepartamento = ? AND Estado = 1 " +
-                    "ORDER BY Nombre";
+                    "WHERE codigo_departamento = ? AND estado = 1 " +
+                    "ORDER BY nombre";
         return jdbcTemplate.query(sql, rowMapper, codigoDepartamento);
     }
     
     public Provincia findByCodigo(Long codigo) {
-        String sql = "SELECT Codigo, Nombre, CodigoDepartamento, Estado FROM provincia WHERE Codigo = ?";
+        String sql = "SELECT codigo, nombre, codigo_departamento, estado FROM provincia WHERE codigo = ?";
         return jdbcTemplate.queryForObject(sql, rowMapper, codigo);
     }
 }

@@ -31,7 +31,10 @@ public class UbicacionRestController {
     @GetMapping("/provincias/{codigoDepartamento}")
     public ResponseEntity<List<Provincia>> obtenerProvinciasPorDepartamento(
             @PathVariable Long codigoDepartamento) {
+        System.out.println("🌍 API: Obteniendo provincias para departamento: " + codigoDepartamento);
         List<Provincia> provincias = provinciaRepository.findByDepartamento(codigoDepartamento);
+        System.out.println("🌍 API: Provincias encontradas: " + provincias.size());
+        provincias.forEach(p -> System.out.println("   - " + p.getCodigo() + ": " + p.getNombre()));
         return ResponseEntity.ok(provincias);
     }
     
@@ -42,7 +45,10 @@ public class UbicacionRestController {
     @GetMapping("/distritos/{codigoProvincia}")
     public ResponseEntity<List<Distrito>> obtenerDistritosPorProvincia(
             @PathVariable Long codigoProvincia) {
+        System.out.println("🏘️ API: Obteniendo distritos para provincia: " + codigoProvincia);
         List<Distrito> distritos = distritoRepository.findByProvincia(codigoProvincia);
+        System.out.println("🏘️ API: Distritos encontrados: " + distritos.size());
+        distritos.forEach(d -> System.out.println("   - " + d.getCodigo() + ": " + d.getNombre()));
         return ResponseEntity.ok(distritos);
     }
 }

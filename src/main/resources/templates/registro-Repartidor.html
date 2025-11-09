@@ -149,7 +149,28 @@
                                 <h4 class="mb-0"><i class="fas fa-user"></i> Datos Personales</h4>
                             </div>
 
-                            <!-- Nombre y Apellidos -->
+                            <!-- Tipo y Número de Documento (PRIMERO para auto-completar) -->
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="CodigoTipoDocumento" class="form-label">Tipo de Documento *</label>
+                                        <!-- Enviar el tipo como 'tipoDocumento' para mapear con RepartidorRegistroDTO.tipoDocumento -->
+                                        <select class="form-select" id="CodigoTipoDocumento" name="tipoDocumento" required>
+                                            <option value="">Seleccionar</option>
+                                            <option value="DNI" selected>DNI</option>
+                                            <option value="CE">Carnet de Extranjería</option>
+                                            <option value="PAS">Pasaporte</option>
+                                        </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="NumeroDocumento" class="form-label">Número de Documento *</label>
+                                    <input type="text" class="form-control" id="NumeroDocumento" name="NumeroDocumento" 
+                                           required maxlength="8" pattern="[0-9]{8}"
+                                           title="Debe contener exactamente 8 dígitos">
+                                    <div class="form-text text-muted" id="docNumberHelp">8 dígitos numéricos - Se autocompletará al escribir</div>
+                                </div>
+                            </div>
+
+                            <!-- Nombre y Apellidos (se auto-completan con DNI) -->
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <label for="Nombre" class="form-label">Nombre *</label>
@@ -174,26 +195,6 @@
                                            pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+" 
                                            title="Solo se permiten letras y espacios">
                                     <div class="form-text text-muted">Solo letras (máx. 50 caracteres)</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Tipo y Número de Documento -->
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="CodigoTipoDocumento" class="form-label">Tipo de Documento *</label>
-                                        <!-- Enviar el tipo como 'tipoDocumento' para mapear con RepartidorRegistroDTO.tipoDocumento -->
-                                        <select class="form-select" id="CodigoTipoDocumento" name="tipoDocumento" required>
-                                            <option value="">Seleccionar</option>
-                                            <option value="DNI">DNI</option>
-                                            <option value="CE">Carnet de Extranjería</option>
-                                            <option value="PAS">Pasaporte</option>
-                                        </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="NumeroDocumento" class="form-label">Número de Documento *</label>
-                                    <input type="text" class="form-control" id="NumeroDocumento" name="NumeroDocumento" 
-                                           required maxlength="15">
-                                    <div class="form-text text-muted" id="docNumberHelp">Ingrese el número de documento</div>
                                 </div>
                             </div>
 
@@ -453,7 +454,128 @@
         const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
         document.getElementById('FechaNacimiento').max = maxDate.toISOString().split('T')[0];
         
-        // Información según tipo de vehículo
+        // ==================== AUTO-COMPLETADO DE DNI ====================
+        async function consultarDNI(dni) {
+            try {
+                console.log('🔍 Consultando DNI:', dni);
+                docNumberInput.classList.add('is-valid');
+                docNumberInput.classList.remove('is-invalid');
+                docNumberHelp.textContent = '🔍 Consultando DNI...';
+                docNumberHelp.className = 'form-text text-primary';
+                
+                const response = await fetch(`/api/validation/dni/${dni}`);
+                
+                if (!response.ok) {
+                    throw new Error('DNI no encontrado');
+                }
+                
+                const data = await response.json();
+                console.log('✅ DNI encontrado:', data);
+                
+                // Auto-completar los campos
+                nombreInput.value = data.nombres || '';
+                paternoInput.value = data.apellidoPaterno || '';
+                maternoInput.value = data.apellidoMaterno || '';
+                
+                // Hacer los campos de solo lectura y cambiar color
+                nombreInput.readOnly = true;
+                paternoInput.readOnly = true;
+                maternoInput.readOnly = true;
+                nombreInput.style.backgroundColor = '#e7f5e7';
+                paternoInput.style.backgroundColor = '#e7f5e7';
+                maternoInput.style.backgroundColor = '#e7f5e7';
+                
+                // Mensaje de éxito
+                docNumberHelp.textContent = '✓ DNI verificado correctamente';
+                docNumberHelp.className = 'form-text text-success';
+                
+            } catch (error) {
+                console.error('❌ Error consultando DNI:', error);
+                docNumberInput.classList.remove('is-valid');
+                docNumberInput.classList.add('is-invalid');
+                
+                // Limpiar y permitir edición manual
+                nombreInput.value = '';
+                paternoInput.value = '';
+                maternoInput.value = '';
+                nombreInput.readOnly = false;
+                paternoInput.readOnly = false;
+                maternoInput.readOnly = false;
+                nombreInput.style.backgroundColor = '';
+                paternoInput.style.backgroundColor = '';
+                maternoInput.style.backgroundColor = '';
+                
+                // Mensaje de error
+                docNumberHelp.textContent = '✗ DNI no encontrado. Ingrese los datos manualmente';
+                docNumberHelp.className = 'form-text text-danger';
+            }
+        }
+        
+        // Validación de tipo de documento y número con auto-completado
+        docTypeSelect.addEventListener('change', function() {
+            const selectedType = this.value;
+            
+            if (selectedType === 'DNI') {
+                docNumberInput.setAttribute('maxlength', '8');
+                docNumberInput.setAttribute('pattern', '[0-9]{8}');
+                docNumberInput.setAttribute('title', 'Debe contener exactamente 8 dígitos');
+                docNumberHelp.textContent = '8 dígitos numéricos - Se autocompletará al escribir';
+            } else if (selectedType === 'CE' || selectedType === 'PAS') {
+                docNumberInput.setAttribute('maxlength', '15');
+                docNumberInput.setAttribute('pattern', '[A-Za-z0-9]{1,15}');
+                docNumberInput.setAttribute('title', 'Máximo 15 caracteres alfanuméricos');
+                docNumberHelp.textContent = 'Máximo 15 caracteres alfanuméricos';
+            } else {
+                docNumberInput.removeAttribute('maxlength');
+                docNumberInput.removeAttribute('pattern');
+                docNumberInput.removeAttribute('title');
+                docNumberHelp.textContent = 'Ingrese el número de documento';
+            }
+            
+            docNumberInput.value = '';
+            nombreInput.value = '';
+            paternoInput.value = '';
+            maternoInput.value = '';
+            nombreInput.readOnly = false;
+            paternoInput.readOnly = false;
+            maternoInput.readOnly = false;
+            nombreInput.style.backgroundColor = '';
+            paternoInput.style.backgroundColor = '';
+            maternoInput.style.backgroundColor = '';
+        });
+        
+        // Auto-consultar cuando se complete el DNI (8 dígitos)
+        docNumberInput.addEventListener('input', function() {
+            if (docTypeSelect.value === 'DNI') {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                
+                // Limpiar clases de validación
+                this.classList.remove('is-valid', 'is-invalid');
+                
+                if (this.value.length === 8) {
+                    // Auto-consultar cuando tenga 8 dígitos
+                    consultarDNI(this.value);
+                } else if (this.value.length > 0) {
+                    docNumberHelp.textContent = `Ingresa ${8 - this.value.length} dígitos más`;
+                    docNumberHelp.className = 'form-text text-muted';
+                }
+            }
+        });
+        
+        // Permitir edición manual de campos si se limpia el DNI
+        docNumberInput.addEventListener('blur', function() {
+            if (this.value.length === 0 && docTypeSelect.value === 'DNI') {
+                nombreInput.readOnly = false;
+                paternoInput.readOnly = false;
+                maternoInput.readOnly = false;
+                nombreInput.style.backgroundColor = '';
+                paternoInput.style.backgroundColor = '';
+                maternoInput.style.backgroundColor = '';
+                this.classList.remove('is-valid', 'is-invalid');
+                docNumberHelp.textContent = '8 dígitos numéricos - Se autocompletará al escribir';
+                docNumberHelp.className = 'form-text text-muted';
+            }
+        });
         tipoVehiculoSelect.addEventListener('change', function() {
             const tipoVehiculo = this.value;
             
@@ -478,22 +600,6 @@
                 vehiculoInfo.style.display = 'none';
                 licenciaInput.required = true;
             }
-        });
-        
-        // Validación de tipo de documento y número
-        docTypeSelect.addEventListener('change', function() {
-            const selectedType = this.value;
-            
-            if (selectedType === '1') { // DNI
-                docNumberInput.setAttribute('maxlength', '8');
-                docNumberInput.setAttribute('pattern', '[0-9]{8}');
-                docNumberHelp.textContent = '8 dígitos numéricos';
-            } else if (selectedType === '2' || selectedType === '3') {
-                docNumberInput.setAttribute('maxlength', '15');
-                docNumberInput.setAttribute('pattern', '[A-Za-z0-9]{1,15}');
-                docNumberHelp.textContent = 'Máximo 15 caracteres alfanuméricos';
-            }
-            docNumberInput.value = '';
         });
         
         // Validación de contraseñas

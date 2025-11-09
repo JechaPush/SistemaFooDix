@@ -39,10 +39,13 @@ public class RepartidorController {
     public String mostrarFormulario(Model model) {
         // Cargar departamentos para el select usando JDBC
         List<Departamento> departamentos = departamentoRepository.findAllActivos();
+        System.out.println("🔍 Departamentos cargados: " + departamentos.size());
+        departamentos.forEach(d -> System.out.println("   - " + d.getCodigo() + ": " + d.getNombre()));
         model.addAttribute("departamentos", departamentos);
         
         // Cargar tipos de vehículo para el select
         List<TipoVehiculo> tiposVehiculo = tipoVehiculoRepository.findByEstadoTrue();
+        System.out.println("🔍 Tipos de vehículo cargados: " + tiposVehiculo.size());
         model.addAttribute("tiposVehiculo", tiposVehiculo);
         
         return "registro-Repartidor";

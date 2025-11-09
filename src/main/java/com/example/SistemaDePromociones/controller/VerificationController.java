@@ -18,13 +18,16 @@ public class VerificationController {
     private EmailService emailService;
 
     @GetMapping("/verificacion")
-    public String showVerificationPage() {
+    public String showVerificationPage(@RequestParam(required = false, defaultValue = "usuario") String tipo, Model model) {
+        model.addAttribute("tipoRegistro", tipo);
         return "verificacion";
     }
 
     @PostMapping("/auth/send-code")
     @ResponseBody
-    public String sendVerificationCode(@RequestParam String email, HttpSession session) {
+    public String sendVerificationCode(@RequestParam String email, 
+                                      @RequestParam(required = false, defaultValue = "usuario") String tipo,
+                                      HttpSession session) {
         try {
             if (email == null || email.trim().isEmpty()) {
                 return "{\"success\": false, \"error\": \"El correo electrónico es requerido\"}";
@@ -32,9 +35,10 @@ public class VerificationController {
             String code = verificationService.generateCode(email);
             emailService.sendVerificationCode(email, code);
             session.setAttribute("verificationEmail", email);
+            session.setAttribute("tipoRegistro", tipo); // Guardar el tipo
             return "{\"success\": true, \"message\": \"Código enviado exitosamente\"}";
         } catch (Exception e) {
-            e.printStackTrace(); // Para ver el error completo en la consola
+            e.printStackTrace();
             return "{\"success\": false, \"error\": \"Error al enviar el código: " + e.getMessage() + "\"}";
         }
     }
@@ -43,14 +47,28 @@ public class VerificationController {
     @ResponseBody
     public String verifyCode(@RequestParam String code, HttpSession session) {
         String email = (String) session.getAttribute("verificationEmail");
+        String tipo = (String) session.getAttribute("tipoRegistro");
+        
         if (email == null) {
             return "{\"success\": false, \"error\": \"Sesión expirada\"}";
+        }
+        
+        if (tipo == null) {
+            tipo = "usuario"; // Por defecto
         }
 
         boolean isValid = verificationService.verifyCode(email, code);
         if (isValid) {
             session.setAttribute("verifiedEmail", email);
-            return "{\"success\": true, \"redirectUrl\": \"/registro\"}";
+            
+            // Redirigir según el tipo de registro
+            String redirectUrl = switch (tipo) {
+                case "restaurante" -> "/registro-restaurante";
+                case "repartidor" -> "/registro-repartidor";
+                default -> "/registro";
+            };
+            
+            return "{\"success\": true, \"redirectUrl\": \"" + redirectUrl + "\"}";
         } else {
             return "{\"success\": false, \"error\": \"Código inválido\"}";
         }

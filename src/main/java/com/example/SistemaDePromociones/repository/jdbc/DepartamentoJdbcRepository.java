@@ -19,20 +19,20 @@ public class DepartamentoJdbcRepository {
     
     private final RowMapper<Departamento> rowMapper = (rs, rowNum) -> {
         Departamento dept = new Departamento();
-        dept.setCodigo(rs.getLong("Codigo"));
-        dept.setNombre(rs.getString("Nombre"));
-        dept.setEstado(rs.getBoolean("Estado"));
+        dept.setCodigo(rs.getLong("codigo"));
+        dept.setNombre(rs.getString("nombre"));
+        dept.setEstado(rs.getBoolean("estado"));
         return dept;
     };
     
     public List<Departamento> findAllActivos() {
-        // Usar los nombres EXACTOS de las columnas
-        String sql = "SELECT Codigo, Nombre, Estado FROM departamento WHERE Estado = 1 ORDER BY Nombre";
+        // Usar los nombres de las columnas en minúsculas (snake_case en MySQL)
+        String sql = "SELECT codigo, nombre, estado FROM departamento WHERE estado = 1 ORDER BY nombre";
         return jdbcTemplate.query(sql, rowMapper);
     }
     
     public Departamento findByCodigo(Long codigo) {
-        String sql = "SELECT Codigo, Nombre, Estado FROM departamento WHERE Codigo = ?";
+        String sql = "SELECT codigo, nombre, estado FROM departamento WHERE codigo = ?";
         return jdbcTemplate.queryForObject(sql, rowMapper, codigo);
     }
 }
