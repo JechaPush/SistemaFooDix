@@ -102,9 +102,13 @@ document.getElementById('verificationForm').addEventListener('submit', async fun
         
         if (data.success) {
             showAlert('Código verificado exitosamente', 'success');
-            // Redirigir después de 1 segundo
+            // Obtener el correo ingresado (sigue presente en el DOM aunque el formulario esté oculto)
+            const email = document.getElementById('email') ? document.getElementById('email').value : '';
+            // Redirigir después de 1 segundo incluyendo el email como query param para que registro.html lo use
             setTimeout(() => {
-                window.location.href = data.redirectUrl || '/registro';
+                const target = (data.redirectUrl || '/registro');
+                const url = email ? `${target}?email=${encodeURIComponent(email)}` : target;
+                window.location.href = url;
             }, 1000);
         } else {
             showAlert(data.error || 'Código inválido', 'danger');

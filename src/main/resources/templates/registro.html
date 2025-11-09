@@ -47,7 +47,9 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/contacto" th:href="@{/contacto}">Contacto</a>
+                    <a class="nav-link" href="/contacto" th:href="@{/contacto}">
+                        <i class="fas fa-envelope"></i> Contacto
+                    </a>
                 </li>             
             </ul>
         </div>
@@ -155,9 +157,20 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="Contrasena" class="form-label">Contraseña *</label>
-                                    <input type="password" class="form-control" id="Contrasena" name="Contrasena" 
-                                           required minlength="6" maxlength="255">
-                                    <div class="form-text text-muted">Mínimo 6 caracteres</div>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="Contrasena" name="Contrasena" 
+                                            required minlength="8" maxlength="255">
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleContrasena">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div id="contrasenaFeedback" class="form-text">
+                                        <div id="reqLength" class="text-muted">✗ Mínimo 8 caracteres</div>
+                                        <div id="reqUppercase" class="text-muted">✗ Al menos una mayúscula</div>
+                                        <div id="reqLowercase" class="text-muted">✗ Al menos una minúscula</div>
+                                        <div id="reqNumber" class="text-muted">✗ Al menos un número</div>
+                                        <div id="reqSymbol" class="text-muted">✗ Al menos un símbolo</div>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -232,214 +245,6 @@
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const docTypeSelect = document.getElementById('CodigoTipoDocumento');
-        const docNumberInput = document.getElementById('NumeroDocumento');
-        const docNumberHelp = document.getElementById('docNumberHelp');
-        const passwordInput = document.getElementById('Contrasena');
-        const confirmPasswordInput = document.getElementById('ConfirmarContrasena');
-        const passwordMatchText = document.getElementById('passwordMatchText');
-        const nameInput = document.getElementById('Nombre');
-        const paternalInput = document.getElementById('ApellidoPaterno');
-        const maternalInput = document.getElementById('ApellidoMaterno');
-        const phoneInput = document.getElementById('Telefono');
-        const birthDateInput = document.getElementById('FechaNacimiento');
-        const deptSelect = document.getElementById('CodigoDepartamento');
-        const provSelect = document.getElementById('CodigoProvincia');
-        const distSelect = document.getElementById('CodigoDistrito');
-        
-        // Validación de edad mínima (18 años)
-        const today = new Date();
-        const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-        birthDateInput.max = maxDate.toISOString().split('T')[0];
-        
-        // Validación de tipo de documento y número
-        docTypeSelect.addEventListener('change', function() {
-            const selectedType = this.value;
-            
-            if (selectedType === '1') { // DNI
-                docNumberInput.setAttribute('maxlength', '8');
-                docNumberInput.setAttribute('pattern', '[0-9]{8}');
-                docNumberInput.setAttribute('title', 'Debe contener exactamente 8 dígitos');
-                docNumberHelp.textContent = '8 dígitos numéricos';
-            } else if (selectedType === '2' || selectedType === '3') { // CE o Pasaporte
-                docNumberInput.setAttribute('maxlength', '15');
-                docNumberInput.setAttribute('pattern', '[A-Za-z0-9]{1,15}');
-                docNumberInput.setAttribute('title', 'Máximo 15 caracteres alfanuméricos');
-                docNumberHelp.textContent = 'Máximo 15 caracteres alfanuméricos';
-            } else {
-                docNumberInput.removeAttribute('maxlength');
-                docNumberInput.removeAttribute('pattern');
-                docNumberInput.removeAttribute('title');
-                docNumberHelp.textContent = 'Ingrese el número de documento';
-            }
-            
-            docNumberInput.value = '';
-        });
-        
-        // Validación de coincidencia de contraseñas
-        function validatePasswordMatch() {
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
-            
-            if (confirmPassword === '') {
-                confirmPasswordInput.classList.remove('password-mismatch');
-                passwordMatchText.textContent = 'Las contraseñas deben coincidir';
-                passwordMatchText.className = 'form-text text-muted';
-                return;
-            }
-            
-            if (password === confirmPassword) {
-                confirmPasswordInput.classList.remove('password-mismatch');
-                passwordMatchText.textContent = '✓ Las contraseñas coinciden';
-                passwordMatchText.className = 'form-text text-success';
-            } else {
-                confirmPasswordInput.classList.add('password-mismatch');
-                passwordMatchText.textContent = '✗ Las contraseñas no coinciden';
-                passwordMatchText.className = 'form-text text-danger';
-            }
-        }
-        
-        passwordInput.addEventListener('input', validatePasswordMatch);
-        confirmPasswordInput.addEventListener('input', validatePasswordMatch);
-        
-        // Validación de solo letras para nombres y apellidos
-        function validateLettersOnly(input) {
-            input.addEventListener('input', function() {
-                this.value = this.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\s]/g, '');
-            });
-        }
-        
-        validateLettersOnly(nameInput);
-        validateLettersOnly(paternalInput);
-        validateLettersOnly(maternalInput);
-        
-        // Validación de solo números para teléfono
-        phoneInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-        
-        // Validación de solo números para DNI
-        docNumberInput.addEventListener('input', function() {
-            if (docTypeSelect.value === '1') {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            }
-        });
-        
-        // Cascada Departamento -> Provincia -> Distrito
-        deptSelect.addEventListener('change', async function() {
-            const deptId = this.value;
-            provSelect.disabled = true;
-            distSelect.disabled = true;
-            provSelect.innerHTML = '<option value="">Cargando...</option>';
-            distSelect.innerHTML = '<option value="">Seleccione provincia primero</option>';
-            
-            if (deptId) {
-                try {
-                    // Llamada AJAX para cargar provincias
-                    const response = await fetch(`/api/provincias/${deptId}`);
-                    const provincias = await response.json();
-                    
-                    provSelect.innerHTML = '<option value="">Seleccionar</option>';
-                    provincias.forEach(prov => {
-                        provSelect.innerHTML += `<option value="${prov.codigo}">${prov.nombre}</option>`;
-                    });
-                    provSelect.disabled = false;
-                } catch (error) {
-                    console.error('Error cargando provincias:', error);
-                    provSelect.innerHTML = '<option value="">Error al cargar</option>';
-                }
-            } else {
-                provSelect.innerHTML = '<option value="">Seleccione departamento primero</option>';
-            }
-        });
-        
-        provSelect.addEventListener('change', async function() {
-            const provId = this.value;
-            distSelect.disabled = true;
-            distSelect.innerHTML = '<option value="">Cargando...</option>';
-            
-            if (provId) {
-                try {
-                    // Llamada AJAX para cargar distritos
-                    const response = await fetch(`/api/distritos/${provId}`);
-                    const distritos = await response.json();
-                    
-                    distSelect.innerHTML = '<option value="">Seleccionar</option>';
-                    distritos.forEach(dist => {
-                        distSelect.innerHTML += `<option value="${dist.codigo}">${dist.nombre}</option>`;
-                    });
-                    distSelect.disabled = false;
-                } catch (error) {
-                    console.error('Error cargando distritos:', error);
-                    distSelect.innerHTML = '<option value="">Error al cargar</option>';
-                }
-            } else {
-                distSelect.innerHTML = '<option value="">Seleccione provincia primero</option>';
-            }
-        });
-        
-        // Validación del formulario antes de enviar
-        document.getElementById('registerForm').addEventListener('submit', function(event) {
-            let isValid = true;
-            const errors = [];
-            
-            // Validar coincidencia de contraseñas
-            if (passwordInput.value !== confirmPasswordInput.value) {
-                confirmPasswordInput.classList.add('password-mismatch');
-                errors.push('Las contraseñas no coinciden');
-                isValid = false;
-            }
-            
-            // Validar edad mínima
-            const birthDate = new Date(birthDateInput.value);
-            const age = Math.floor((today - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
-            if (age < 18) {
-                birthDateInput.classList.add('invalid-input');
-                errors.push('Debes ser mayor de 18 años');
-                isValid = false;
-            }
-            
-            // Validar documento según tipo
-            const docType = docTypeSelect.value;
-            const docNumber = docNumberInput.value;
-            
-            if (docType === '1' && !/^[0-9]{8}$/.test(docNumber)) {
-                docNumberInput.classList.add('invalid-input');
-                errors.push('El DNI debe tener exactamente 8 dígitos');
-                isValid = false;
-            }
-            
-            if ((docType === '2' || docType === '3') && !/^[A-Za-z0-9]{1,15}$/.test(docNumber)) {
-                docNumberInput.classList.add('invalid-input');
-                errors.push('Número de documento inválido');
-                isValid = false;
-            }
-            
-            // Validar teléfono si se ingresó
-            if (phoneInput.value && !/^[0-9]{9}$/.test(phoneInput.value)) {
-                phoneInput.classList.add('invalid-input');
-                errors.push('El teléfono debe tener exactamente 9 dígitos');
-                isValid = false;
-            }
-            
-            if (!isValid) {
-                event.preventDefault();
-                alert('Errores en el formulario:\n- ' + errors.join('\n- '));
-            }
-        });
-
-        // Autocompletar email desde URL (para verificación)
-        const urlParams = new URLSearchParams(window.location.search);
-        const verifiedEmail = urlParams.get('email');
-        if (verifiedEmail) {
-            const emailInput = document.getElementById('CorreoElectronico');
-            emailInput.value = verifiedEmail;
-            emailInput.readOnly = true;
-            emailInput.style.backgroundColor = '#e9ecef';
-        }
-    });
-</script>
+<script th:src="@{/js/registro.js}"></script>
 </body>
 </html>
