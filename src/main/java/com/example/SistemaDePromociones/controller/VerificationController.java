@@ -26,12 +26,16 @@ public class VerificationController {
     @ResponseBody
     public String sendVerificationCode(@RequestParam String email, HttpSession session) {
         try {
+            if (email == null || email.trim().isEmpty()) {
+                return "{\"success\": false, \"error\": \"El correo electrónico es requerido\"}";
+            }
             String code = verificationService.generateCode(email);
             emailService.sendVerificationCode(email, code);
             session.setAttribute("verificationEmail", email);
-            return "{\"success\": true}";
+            return "{\"success\": true, \"message\": \"Código enviado exitosamente\"}";
         } catch (Exception e) {
-            return "{\"success\": false, \"error\": \"" + e.getMessage() + "\"}";
+            e.printStackTrace(); // Para ver el error completo en la consola
+            return "{\"success\": false, \"error\": \"Error al enviar el código: " + e.getMessage() + "\"}";
         }
     }
 

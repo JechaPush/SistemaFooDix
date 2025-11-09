@@ -10,6 +10,18 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       - APP_UPLOAD_DIR=uploads
+      # Configuración de correo (GMAIL)
+      - SPRING_MAIL_HOST=smtp.gmail.com
+      - SPRING_MAIL_PORT=587
+      - SPRING_MAIL_USERNAME=sistemafoodix@gmail.com
+      - SPRING_MAIL_PASSWORD=spdtspyvzwczljgz
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST=smtp.gmail.com
+      
+      # Logging para debugging
+      - SPRING_PROFILES_ACTIVE=dev
+      - LOGGING_LEVEL_COM_EXAMPLE=DEBUG
     volumes:
       - app-uploads:/uploads
     # --- MODIFICACIÓN AQUÍ ---
