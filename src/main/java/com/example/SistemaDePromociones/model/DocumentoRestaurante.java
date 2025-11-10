@@ -10,36 +10,35 @@ import java.time.LocalDateTime;
  * (Carta del Restaurante, Licencia de Funcionamiento, Carnet de Sanidad, etc.)
  */
 @Entity
-@Table(name = "DocumentoRestaurante")
+@Table(name = "documento_restaurante")
 @Data
 public class DocumentoRestaurante {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "Codigo")
+    @Column(name = "codigo")
     private Long codigo;
     
-    @Column(name = "CodigoRestaurante", nullable = false)
+    @Column(name = "codigo_restaurante", nullable = false)
     private Long codigoRestaurante;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "TipoDocumento", nullable = false)
-    private TipoDocumentoRestaurante tipoDocumento;
+    @Column(name = "tipo_documento", nullable = false, length = 50)
+    private String tipoDocumento;
     
-    @Column(name = "RutaArchivo", nullable = false, length = 255)
+    @Column(name = "ruta_archivo", nullable = false, length = 255)
     private String rutaArchivo;
     
-    @Column(name = "FechaVencimiento")
+    @Column(name = "fecha_vencimiento")
     private LocalDate fechaVencimiento;
     
-    @Column(name = "FechaSubida", nullable = false, updatable = false)
+    @Column(name = "fecha_subida", nullable = false, updatable = false)
     private LocalDateTime fechaSubida;
     
-    @Column(name = "Estado", nullable = false)
+    @Column(name = "estado", nullable = false)
     private Boolean estado = true;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CodigoRestaurante", insertable = false, updatable = false)
+    @JoinColumn(name = "codigo_restaurante", insertable = false, updatable = false)
     private Restaurante restaurante;
     
     @PrePersist
@@ -48,15 +47,5 @@ public class DocumentoRestaurante {
         if (estado == null) {
             estado = true;
         }
-    }
-    
-    /**
-     * Enum para los tipos de documentos de restaurante
-     */
-    public enum TipoDocumentoRestaurante {
-        CARTA_RESTAURANTE,
-        LicenciaFuncionamiento,
-        CarnetSanidad,
-        Otros
     }
 }

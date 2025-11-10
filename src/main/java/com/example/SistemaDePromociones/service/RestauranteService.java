@@ -30,10 +30,14 @@ public class RestauranteService {
     private EntityManager entityManager;
     
     /**
-     * Registrar un nuevo restaurante usando SQL directo
+     * Registrar un nuevo restaurante usando SQL directo con documentos
      */
     @Transactional
-    public Long registrarRestaurante(RestauranteRegistroDTO dto) throws Exception {
+    public Long registrarRestaurante(
+            RestauranteRegistroDTO dto,
+            MultipartFile cartaRestaurante,
+            MultipartFile carnetSanidad,
+            MultipartFile licenciaFuncionamiento) throws Exception {
         
         // Validar campos requeridos
         if (dto.getTipoDocumento() == null || dto.getTipoDocumento().isEmpty()) {
@@ -46,8 +50,8 @@ public class RestauranteService {
         }
         
         // 1. Crear usuario (representante del restaurante)
-    Integer codigoTipoDocumento = "DNI".equals(dto.getTipoDocumento()) ? 1 : 2;
-        Integer codigoRol = 4; // 4 = Restaurante
+        Integer codigoTipoDocumento = "DNI".equals(dto.getTipoDocumento()) ? 1 : 2;
+        Integer codigoRol = 2; // 2 = Restaurante
         
         Long codigoUsuario = usuarioService.crearUsuario(
             dto.getNombre(),
@@ -77,9 +81,73 @@ public class RestauranteService {
             dto.getCodigoDistritoNegocio()
         );
         
-        // Por ahora retornar el ID (simplificado)
-        // TODO: Agregar categorías y documentos después
+        System.out.println("✅ [RESTAURANTE] Restaurante creado con código: " + codigoRestaurante);
+        
+        // 3. Guardar documentos
+        guardarDocumentos(codigoRestaurante, cartaRestaurante, carnetSanidad, licenciaFuncionamiento);
+        
         return codigoRestaurante;
+    }
+    
+    /**
+     * Guardar documentos del restaurante
+     */
+    private void guardarDocumentos(
+            Long codigoRestaurante,
+            MultipartFile cartaRestaurante,
+            MultipartFile carnetSanidad,
+            MultipartFile licenciaFuncionamiento) {
+        
+        try {
+            String carpetaBase = "uploads/restaurantes/" + codigoRestaurante + "/documentos";
+            
+            // Guardar Carta del Restaurante
+            if (cartaRestaurante != null && !cartaRestaurante.isEmpty()) {
+                String rutaCarta = fileStorageService.guardarArchivo(cartaRestaurante, carpetaBase);
+                if (rutaCarta != null) {
+                    DocumentoRestaurante doc = new DocumentoRestaurante();
+                    doc.setCodigoRestaurante(codigoRestaurante);
+                    doc.setTipoDocumento("CARTA_RESTAURANTE");
+                    doc.setRutaArchivo(rutaCarta);
+                    doc.setEstado(true);
+                    entityManager.persist(doc);
+                    System.out.println("✅ [DOCUMENTO] Carta guardada: " + rutaCarta);
+                }
+            }
+            
+            // Guardar Carnet de Sanidad
+            if (carnetSanidad != null && !carnetSanidad.isEmpty()) {
+                String rutaCarnet = fileStorageService.guardarArchivo(carnetSanidad, carpetaBase);
+                if (rutaCarnet != null) {
+                    DocumentoRestaurante doc = new DocumentoRestaurante();
+                    doc.setCodigoRestaurante(codigoRestaurante);
+                    doc.setTipoDocumento("CarnetSanidad");
+                    doc.setRutaArchivo(rutaCarnet);
+                    doc.setEstado(true);
+                    entityManager.persist(doc);
+                    System.out.println("✅ [DOCUMENTO] Carnet guardado: " + rutaCarnet);
+                }
+            }
+            
+            // Guardar Licencia de Funcionamiento
+            if (licenciaFuncionamiento != null && !licenciaFuncionamiento.isEmpty()) {
+                String rutaLicencia = fileStorageService.guardarArchivo(licenciaFuncionamiento, carpetaBase);
+                if (rutaLicencia != null) {
+                    DocumentoRestaurante doc = new DocumentoRestaurante();
+                    doc.setCodigoRestaurante(codigoRestaurante);
+                    doc.setTipoDocumento("LicenciaFuncionamiento");
+                    doc.setRutaArchivo(rutaLicencia);
+                    doc.setEstado(true);
+                    entityManager.persist(doc);
+                    System.out.println("✅ [DOCUMENTO] Licencia guardada: " + rutaLicencia);
+                }
+            }
+            
+        } catch (Exception e) {
+            System.err.println("❌ [DOCUMENTO] Error al guardar documentos: " + e.getMessage());
+            e.printStackTrace();
+            // No lanzar excepción para no afectar el registro principal
+        }
     }
     
     /*

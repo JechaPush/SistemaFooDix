@@ -1,9 +1,13 @@
 package com.example.SistemaDePromociones.controller;
 
 import com.example.SistemaDePromociones.model.Categoria;
+import com.example.SistemaDePromociones.model.Repartidor;
 import com.example.SistemaDePromociones.model.Restaurante;
+import com.example.SistemaDePromociones.model.Usuario;
 import com.example.SistemaDePromociones.repository.CategoriaRepository;
+import com.example.SistemaDePromociones.repository.RepartidorRepository;
 import com.example.SistemaDePromociones.repository.RestauranteRepository;
+import com.example.SistemaDePromociones.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,7 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controlador para el menú de administrador
@@ -28,6 +34,12 @@ public class AdminController {
     
     @Autowired
     private RestauranteRepository restauranteRepository;
+    
+    @Autowired
+    private RepartidorRepository repartidorRepository;
+    
+    @Autowired
+    private UsuarioRepository usuarioRepository;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -55,11 +67,37 @@ public class AdminController {
         model.addAttribute("approvedRestaurants", approvedRestaurants);
         System.out.println("✅ [ADMIN] Restaurantes aprobados: " + approvedRestaurants.size());
         
-        // TODO: Cargar usuarios, delivery, etc.
-        // model.addAttribute("users", usuarioRepository.findByRol("CUSTOMER"));
-        // model.addAttribute("restaurantUsers", usuarioRepository.findByRol("RESTAURANT"));
-        // model.addAttribute("deliveryUsers", usuarioRepository.findByRol("DELIVERY"));
-        // model.addAttribute("adminUsers", usuarioRepository.findByRol("ADMIN"));
+        // Cargar repartidores pendientes de aprobación (Estado 1)
+        List<Repartidor> pendingDeliveries = repartidorRepository.findByCodigoEstadoAprobacion(1L);
+        model.addAttribute("pendingDeliveries", pendingDeliveries);
+        System.out.println("🏍️ [ADMIN] Repartidores pendientes: " + pendingDeliveries.size());
+        
+        // Cargar repartidores aprobados (Estado 2)
+        List<Repartidor> approvedDeliveries = repartidorRepository.findByCodigoEstadoAprobacion(2L);
+        model.addAttribute("approvedDeliveries", approvedDeliveries);
+        System.out.println("✅ [ADMIN] Repartidores aprobados: " + approvedDeliveries.size());
+        
+        // Cargar usuarios por rol
+        List<Usuario> users = usuarioRepository.findByCodigoRol(4L); // 4 = Cliente
+        model.addAttribute("users", users);
+        System.out.println("👥 [ADMIN] Usuarios (clientes) cargados: " + users.size());
+        
+        List<Usuario> deliveryUsers = usuarioRepository.findByCodigoRol(3L); // 3 = Delivery/Repartidor
+        model.addAttribute("deliveryUsers", deliveryUsers);
+        System.out.println("👥 [ADMIN] Usuarios repartidores cargados: " + deliveryUsers.size());
+        
+        List<Usuario> adminUsers = usuarioRepository.findByCodigoRol(1L); // 1 = Admin
+        model.addAttribute("adminUsers", adminUsers);
+        System.out.println("👑 [ADMIN] Administradores cargados: " + adminUsers.size());
+        
+        // Cargar estadísticas para la sección de reportes
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalUsers", usuarioRepository.count());
+        stats.put("totalRestaurants", restauranteRepository.count());
+        stats.put("monthSales", 0); // TODO: Implementar cuando exista modelo de ventas
+        stats.put("activeOrders", 0); // TODO: Implementar cuando exista modelo de pedidos
+        model.addAttribute("stats", stats);
+        System.out.println("📊 [ADMIN] Estadísticas cargadas: " + stats);
         
         return "menuAdministrador";
     }

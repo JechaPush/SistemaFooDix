@@ -31,4 +31,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
      * Verificar si existe un número de documento
      */
     boolean existsByNumeroDocumento(String numeroDocumento);
+    
+    /**
+     * Buscar usuarios por código de rol
+     */
+    java.util.List<Usuario> findByCodigoRol(Long codigoRol);
+    
+    /**
+     * Buscar usuarios por rol activos
+     */
+    java.util.List<Usuario> findByCodigoRolAndEstado(Long codigoRol, Boolean estado);
 }

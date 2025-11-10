@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .requestMatchers("/menuRestaurante/**").hasRole("RESTAURANT")
                 .requestMatchers("/menuDelivery/**").hasRole("DELIVERY")
                 .requestMatchers("/menuUsuario/**").hasRole("CUSTOMER")
+                .requestMatchers("/uploads/**").hasAnyRole("ADMIN", "RESTAURANT", "DELIVERY")
                 
                 // Todas las demás rutas requieren autenticación
                 .anyRequest().authenticated()

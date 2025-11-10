@@ -26,4 +26,15 @@ public interface RepartidorRepository extends JpaRepository<Repartidor, Long> {
      * Verificar si existe un número de licencia
      */
     boolean existsByNumeroLicencia(String numeroLicencia);
+    
+    /**
+     * Buscar repartidores por código de estado de aprobación
+     * 1 = Pendiente, 2 = Aprobado, 3 = Rechazado
+     */
+    java.util.List<Repartidor> findByCodigoEstadoAprobacion(Long codigoEstadoAprobacion);
+    
+    /**
+     * Buscar repartidores por código de estado de aprobación y estado activo
+     */
+    java.util.List<Repartidor> findByCodigoEstadoAprobacionAndEstado(Long codigoEstadoAprobacion, Boolean estado);
 }

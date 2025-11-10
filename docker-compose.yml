@@ -1,5 +1,20 @@
+# ============================================
+# DOCKER COMPOSE - SISTEMA FOODIX
+# ============================================
+# Este archivo define 2 servicios:
+# 1. mi-app: Aplicación Spring Boot (puerto 8080)
+# 2. db: Base de datos MySQL 8.0 (puerto 3306)
+#
+# IMPORTANTE: 
+# - Este archivo solo crea los CONTENEDORES vacíos
+# - Los DATOS se importan DESPUÉS con: backup_db_foodix.sql
+# - Ver: GUIA_IMPORTAR_DB.md
+# ============================================
+
 services:
-  # Servicio 1: Tu Aplicación Spring Boot
+  # ==========================================
+  # SERVICIO 1: APLICACIÓN SPRING BOOT
+  # ==========================================
   mi-app:
     build: .
     restart: always
@@ -27,14 +42,16 @@ services:
       - API_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1NTksImV4cCI6MTc2MzMxODEzNH0.bzVljvbLILWrSrhsLV8sI7c-6I1gw7URf6R0lV0lToU
     volumes:
       - app-uploads:/uploads
-    # --- MODIFICACIÓN AQUÍ ---
-    # 'depends_on' ahora espera a que la 'condition' sea 'service_healthy'
+    # Espera a que MySQL esté completamente listo (healthcheck)
     depends_on:
       db:
         condition: service_healthy
-    # --------------------------
 
-  # Servicio 2: Tu Base de Datos MySQL
+  # ==========================================
+  # SERVICIO 2: BASE DE DATOS MYSQL 8.0
+  # ==========================================
+  # NOTA: Este contenedor crea las TABLAS vacías
+  # Los DATOS se importan después con backup_db_foodix.sql
   db:
     image: mysql:8.0
     restart: always
@@ -45,15 +62,18 @@ services:
       - "3306:3306"
     volumes:
       - db-data:/var/lib/mysql
-    # --- AÑADIDO AQUÍ ---
-    # Esta sección le dice a Docker cómo saber si MySQL está listo
+    # Healthcheck: Verifica que MySQL esté listo antes de arrancar la app
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    # ---------------------
 
+# ==========================================
+# VOLÚMENES PERSISTENTES
+# ==========================================
+# db-data: Almacena los datos de MySQL (se mantiene aunque borres el contenedor)
+# app-uploads: Almacena archivos subidos (documentos, imágenes)
 volumes:
   db-data:
   app-uploads:

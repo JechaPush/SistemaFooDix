@@ -172,6 +172,116 @@ SELECT 'Tipos de vehículo insertados:' AS msg, COUNT(*) AS cantidad FROM tipo_v
 SELECT 'Estados de aprobación insertados:' AS msg, COUNT(*) AS cantidad FROM estado_aprobacion;
 
 -- ============================================
+-- 7. TIPOS DE DOCUMENTO
+-- ============================================
+-- Nota: Los tipos de documento deben existir en la tabla tipo_documento
+-- Asegúrate de que existan los registros:
+-- 1 = DNI
+-- 2 = Carnet de Extranjería
+-- 3 = Pasaporte
+-- (Si tu tabla se llama diferente o no existe, ajusta según tu esquema)
+
+-- ============================================
+-- 8. ROLES DEL SISTEMA
+-- ============================================
+-- Nota: Los roles deben existir en la tabla rol
+-- Asegúrate de que existan los registros:
+-- 1 = ADMIN (Administrador)
+-- 2 = RESTAURANT (Restaurante)
+-- 3 = DELIVERY (Repartidor)
+-- 4 = CUSTOMER (Cliente)
+-- (Si tu tabla se llama diferente o no existe, ajusta según tu esquema)
+
+-- ============================================
+-- 9. USUARIOS DE PRUEBA (OPCIONALES)
+-- ============================================
+-- Puedes descomentar estos usuarios para pruebas:
+
+-- Usuario Cliente de prueba
+-- Email: cliente@test.com
+-- Password: 123456
+/*
+INSERT INTO usuario (
+    nombre, apellido_paterno, apellido_materno, numero_documento, fecha_nacimiento,
+    correo_electronico, contrasena, telefono, direccion,
+    codigo_tipo_documento, codigo_rol, codigo_distrito, fecha_creacion, estado
+) VALUES (
+    'Juan', 'Pérez', 'García', '12345678', '1995-05-15',
+    'cliente@test.com', 
+    '$2a$10$XQCKzp0rKEJxjKGVZ8LqEOu8hJxK8vT0lQXFqYyZgXhQ8KpYxGZVe', -- 123456
+    '987654321', 'Av. Balta 123, Chiclayo',
+    1, 4, 1, NOW(), TRUE
+);
+*/
+
+-- Usuario Restaurante de prueba
+-- Email: restaurante@test.com
+-- Password: 123456
+/*
+INSERT INTO usuario (
+    nombre, apellido_paterno, apellido_materno, numero_documento, fecha_nacimiento,
+    correo_electronico, contrasena, telefono, direccion,
+    codigo_tipo_documento, codigo_rol, codigo_distrito, fecha_creacion, estado
+) VALUES (
+    'María', 'López', 'Sánchez', '87654321', '1988-03-20',
+    'restaurante@test.com',
+    '$2a$10$XQCKzp0rKEJxjKGVZ8LqEOu8hJxK8vT0lQXFqYyZgXhQ8KpYxGZVe', -- 123456
+    '987654322', 'Calle Elías Aguirre 456, Chiclayo',
+    1, 2, 1, NOW(), TRUE
+);
+
+-- Restaurante asociado al usuario anterior
+INSERT INTO restaurante (
+    codigo_usuario, ruc, razon_social, nombre, descripcion, direccion,
+    telefono, correo_electronico, codigo_distrito, codigo_estado_aprobacion,
+    fecha_creacion, estado
+) VALUES (
+    LAST_INSERT_ID(), '20123456789', 'RESTAURANTE SUNAT S.A.C.', 'El Buen Sabor',
+    'Restaurante de comida criolla y marina', 'Calle Elías Aguirre 456, Chiclayo',
+    '987654322', 'restaurante@test.com', 1, 8, -- 8 = Aprobado
+    NOW(), TRUE
+);
+*/
+
+-- Usuario Repartidor de prueba
+-- Email: repartidor@test.com
+-- Password: 123456
+/*
+INSERT INTO usuario (
+    nombre, apellido_paterno, apellido_materno, numero_documento, fecha_nacimiento,
+    correo_electronico, contrasena, telefono, direccion,
+    codigo_tipo_documento, codigo_rol, codigo_distrito, fecha_creacion, estado
+) VALUES (
+    'Carlos', 'Ramírez', 'Torres', '11223344', '1992-08-10',
+    'repartidor@test.com',
+    '$2a$10$XQCKzp0rKEJxjKGVZ8LqEOu8hJxK8vT0lQXFqYyZgXhQ8KpYxGZVe', -- 123456
+    '987654323', 'Jr. San José 789, Chiclayo',
+    1, 3, 1, NOW(), TRUE
+);
+
+-- Repartidor asociado al usuario anterior
+INSERT INTO Repartidor (
+    CodigoUsuario, NumeroLicencia, CodigoTipoVehiculo, Disponible,
+    CodigoEstadoAprobacion, FechaCreacion, Estado
+) VALUES (
+    LAST_INSERT_ID(), 'A123456789', 2, TRUE, -- 2 = Motocicleta
+    8, -- 8 = Aprobado
+    NOW(), TRUE
+);
+*/
+
+-- ============================================
+-- CONSULTAS DE VERIFICACIÓN
+-- ============================================
+SELECT 'Departamentos insertados:' AS msg, COUNT(*) AS cantidad FROM departamento;
+SELECT 'Provincias insertadas:' AS msg, COUNT(*) AS cantidad FROM provincia;
+SELECT 'Distritos insertados:' AS msg, COUNT(*) AS cantidad FROM distrito;
+SELECT 'Categorías insertadas:' AS msg, COUNT(*) AS cantidad FROM categoria;
+SELECT 'Tipos de vehículo insertados:' AS msg, COUNT(*) AS cantidad FROM tipo_vehiculo;
+SELECT 'Estados de aprobación insertados:' AS msg, COUNT(*) AS cantidad FROM estado_aprobacion;
+SELECT 'Usuarios insertados:' AS msg, COUNT(*) AS cantidad FROM usuario;
+
+-- ============================================
 -- CONSULTAS DE PRUEBA
 -- ============================================
 -- Ver departamento con sus provincias
