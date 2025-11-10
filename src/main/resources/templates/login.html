@@ -53,38 +53,47 @@
                         </div>
 
                         <!-- Mensajes de notificación -->
+                        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle"></i> 
+                            Correo electrónico o contraseña incorrectos
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle"></i> 
+                            Has cerrado sesión correctamente
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
                         <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
                             <span th:text="${message}"></span>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
-                        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <span th:text="${error}"></span>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
 
-                        <form action="/auth/login" th:action="@{/auth/login}" method="post" id="loginForm">
+                        <form th:action="@{/login}" method="post" id="loginForm">
+                            <!-- CSRF Token -->
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            
                             <!-- Email -->
                             <div class="mb-3">
-                                <label for="CorreoElectronico" class="form-label">Correo Electrónico</label>
+                                <label for="email" class="form-label">Correo Electrónico</label>
                                 <div class="input-group">
                                     <span class="input-group-text">
                                         <i class="fas fa-envelope"></i>
                                     </span>
-                                    <input type="email" class="form-control" id="CorreoElectronico" 
-                                           name="CorreoElectronico" required maxlength="50"
+                                    <input type="email" class="form-control" id="email" 
+                                           name="email" required maxlength="50"
                                            placeholder="correo@ejemplo.com">
                                 </div>
                             </div>
 
                             <!-- Contraseña -->
                             <div class="mb-3">
-                                <label for="Contrasena" class="form-label">Contraseña</label>
+                                <label for="password" class="form-label">Contraseña</label>
                                 <div class="input-group">
                                     <span class="input-group-text">
                                         <i class="fas fa-lock"></i>
                                     </span>
-                                    <input type="password" class="form-control" id="Contrasena" 
-                                           name="Contrasena" required minlength="6"
+                                    <input type="password" class="form-control" id="password" 
+                                           name="password" required minlength="6"
                                            placeholder="Tu contraseña">
                                     <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                         <i class="fas fa-eye"></i>
@@ -94,8 +103,8 @@
 
                             <!-- Recordar sesión -->
                             <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="RecordarSesion" name="RecordarSesion">
-                                <label class="form-check-label" for="RecordarSesion">
+                                <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me">
+                                <label class="form-check-label" for="remember-me">
                                     Recordar mi sesión
                                 </label>
                             </div>
@@ -134,8 +143,8 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const togglePasswordBtn = document.getElementById('togglePassword');
-        const passwordInput = document.getElementById('Contrasena');
-        const emailInput = document.getElementById('CorreoElectronico');
+        const passwordInput = document.getElementById('password');
+        const emailInput = document.getElementById('email');
         
         // Toggle mostrar/ocultar contraseña
         togglePasswordBtn.addEventListener('click', function() {

@@ -131,7 +131,27 @@
                                 <h4 class="mb-0"><i class="fas fa-user"></i> Datos del Responsable</h4>
                             </div>
 
-                            <!-- Nombre y Apellidos del responsable -->
+                            <!-- Tipo y Número de Documento del responsable (PRIMERO para auto-completar) -->
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="tipoDocumento" class="form-label">Tipo de Documento *</label>
+                                    <select class="form-select" id="tipoDocumento" name="tipoDocumento" required>
+                                        <option value="">Seleccionar</option>
+                                        <option value="DNI" selected>DNI</option>
+                                        <option value="CE">Carnet de Extranjería</option>
+                                        <option value="PAS">Pasaporte</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="numeroDocumento" class="form-label">Número de Documento *</label>
+                                    <input type="text" class="form-control" id="numeroDocumento" name="numeroDocumento" 
+                                           required maxlength="8" pattern="[0-9]{8}"
+                                           title="Debe contener exactamente 8 dígitos">
+                                    <div class="form-text text-muted" id="docNumberHelp">8 dígitos numéricos - Se autocompletará al escribir</div>
+                                </div>
+                            </div>
+
+                            <!-- Nombre y Apellidos del responsable (se auto-completan con DNI) -->
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <label for="nombre" class="form-label">Nombre del Responsable *</label>
@@ -156,25 +176,6 @@
                                            pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+" 
                                            title="Solo se permiten letras y espacios">
                                     <div class="form-text text-muted">Solo letras (máx. 50 caracteres)</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Tipo y Número de Documento del responsable -->
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="tipoDocumento" class="form-label">Tipo de Documento *</label>
-                                    <select class="form-select" id="tipoDocumento" name="tipoDocumento" required>
-                                        <option value="">Seleccionar</option>
-                                        <option value="DNI">DNI</option>
-                                        <option value="CE">Carnet de Extranjería</option>
-                                        <option value="PAS">Pasaporte</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="numeroDocumento" class="form-label">Número de Documento *</label>
-                                    <input type="text" class="form-control" id="numeroDocumento" name="numeroDocumento" 
-                                           required maxlength="15">
-                                    <div class="form-text text-muted" id="docNumberHelp">Ingrese el número de documento</div>
                                 </div>
                             </div>
 
@@ -471,6 +472,63 @@
         const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
         document.getElementById('fechaNacimiento').max = maxDate.toISOString().split('T')[0];
         
+        // ==================== AUTO-COMPLETADO DE DNI DEL RESPONSABLE ====================
+        async function consultarDNI(dni) {
+            try {
+                console.log('🔍 Consultando DNI:', dni);
+                docNumberInput.classList.add('is-valid');
+                docNumberInput.classList.remove('is-invalid');
+                docNumberHelp.textContent = '🔍 Consultando DNI...';
+                docNumberHelp.className = 'form-text text-primary';
+                
+                const response = await fetch(`/api/validation/dni/${dni}`);
+                
+                if (!response.ok) {
+                    throw new Error('DNI no encontrado');
+                }
+                
+                const data = await response.json();
+                console.log('✅ DNI encontrado:', data);
+                
+                // Auto-completar los campos
+                nombreInput.value = data.nombres || '';
+                paternoInput.value = data.apellidoPaterno || '';
+                maternoInput.value = data.apellidoMaterno || '';
+                
+                // Hacer los campos de solo lectura y cambiar color
+                nombreInput.readOnly = true;
+                paternoInput.readOnly = true;
+                maternoInput.readOnly = true;
+                nombreInput.style.backgroundColor = '#e7f5e7';
+                paternoInput.style.backgroundColor = '#e7f5e7';
+                maternoInput.style.backgroundColor = '#e7f5e7';
+                
+                // Mensaje de éxito
+                docNumberHelp.textContent = '✓ DNI verificado correctamente';
+                docNumberHelp.className = 'form-text text-success';
+                
+            } catch (error) {
+                console.error('❌ Error consultando DNI:', error);
+                docNumberInput.classList.remove('is-valid');
+                docNumberInput.classList.add('is-invalid');
+                
+                // Limpiar y permitir edición manual
+                nombreInput.value = '';
+                paternoInput.value = '';
+                maternoInput.value = '';
+                nombreInput.readOnly = false;
+                paternoInput.readOnly = false;
+                maternoInput.readOnly = false;
+                nombreInput.style.backgroundColor = '';
+                paternoInput.style.backgroundColor = '';
+                maternoInput.style.backgroundColor = '';
+                
+                // Mensaje de error
+                docNumberHelp.textContent = '✗ DNI no encontrado. Ingrese los datos manualmente';
+                docNumberHelp.className = 'form-text text-danger';
+            }
+        }
+        
         // Validación de tipo de documento y número
         docTypeSelect.addEventListener('change', function() {
             const selectedType = this.value;
@@ -478,13 +536,63 @@
             if (selectedType === 'DNI') {
                 docNumberInput.setAttribute('maxlength', '8');
                 docNumberInput.setAttribute('pattern', '[0-9]{8}');
-                docNumberHelp.textContent = '8 dígitos numéricos';
+                docNumberInput.setAttribute('title', 'Debe contener exactamente 8 dígitos');
+                docNumberHelp.textContent = '8 dígitos numéricos - Se autocompletará al escribir';
             } else if (selectedType === 'CE' || selectedType === 'PAS') {
                 docNumberInput.setAttribute('maxlength', '15');
                 docNumberInput.setAttribute('pattern', '[A-Za-z0-9]{1,15}');
+                docNumberInput.setAttribute('title', 'Máximo 15 caracteres alfanuméricos');
                 docNumberHelp.textContent = 'Máximo 15 caracteres alfanuméricos';
+            } else {
+                docNumberInput.removeAttribute('maxlength');
+                docNumberInput.removeAttribute('pattern');
+                docNumberInput.removeAttribute('title');
+                docNumberHelp.textContent = 'Ingrese el número de documento';
             }
+            
             docNumberInput.value = '';
+            nombreInput.value = '';
+            paternoInput.value = '';
+            maternoInput.value = '';
+            nombreInput.readOnly = false;
+            paternoInput.readOnly = false;
+            maternoInput.readOnly = false;
+            nombreInput.style.backgroundColor = '';
+            paternoInput.style.backgroundColor = '';
+            maternoInput.style.backgroundColor = '';
+        });
+        
+        // Auto-consultar cuando se complete el DNI (8 dígitos)
+        docNumberInput.addEventListener('input', function() {
+            if (docTypeSelect.value === 'DNI') {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                
+                // Limpiar clases de validación
+                this.classList.remove('is-valid', 'is-invalid');
+                
+                if (this.value.length === 8) {
+                    // Auto-consultar cuando tenga 8 dígitos
+                    consultarDNI(this.value);
+                } else if (this.value.length > 0) {
+                    docNumberHelp.textContent = `Ingresa ${8 - this.value.length} dígitos más`;
+                    docNumberHelp.className = 'form-text text-muted';
+                }
+            }
+        });
+        
+        // Permitir edición manual de campos si se limpia el DNI
+        docNumberInput.addEventListener('blur', function() {
+            if (this.value.length === 0 && docTypeSelect.value === 'DNI') {
+                nombreInput.readOnly = false;
+                paternoInput.readOnly = false;
+                maternoInput.readOnly = false;
+                nombreInput.style.backgroundColor = '';
+                paternoInput.style.backgroundColor = '';
+                maternoInput.style.backgroundColor = '';
+                this.classList.remove('is-valid', 'is-invalid');
+                docNumberHelp.textContent = '8 dígitos numéricos - Se autocompletará al escribir';
+                docNumberHelp.className = 'form-text text-muted';
+            }
         });
         
         // Validación de contraseñas
@@ -910,22 +1018,129 @@
             updateCounter();
         }
         
-        // ==================== VALIDACIÓN DE RUC EN TIEMPO REAL ====================
+        // ==================== AUTO-COMPLETADO DE RUC ====================
+        async function consultarRUC(ruc) {
+            const razonSocialInput = document.getElementById('razonSocial');
+            const nombreComercialInput = document.getElementById('nombreComercial');
+            const direccionNegocioInput = document.getElementById('direccionNegocio');
+            
+            try {
+                console.log('🔍 Consultando RUC:', ruc);
+                rucInput.classList.add('is-valid');
+                rucInput.classList.remove('is-invalid');
+                
+                const response = await fetch(`/api/validation/ruc/${ruc}`);
+                
+                if (!response.ok) {
+                    throw new Error('RUC no encontrado');
+                }
+                
+                const data = await response.json();
+                console.log('✅ RUC encontrado:', data);
+                
+                // Auto-completar los campos
+                razonSocialInput.value = data.razonSocial || '';
+                
+                // Auto-completar el Nombre Comercial
+                // Si la empresa tiene nombre comercial registrado, usarlo
+                // Si no tiene (viene como "-" o vacío), usar la razón social como sugerencia
+                if (!nombreComercialInput.value) {
+                    if (data.nombreComercial && data.nombreComercial !== '-' && data.nombreComercial.trim() !== '') {
+                        // Tiene nombre comercial registrado
+                        nombreComercialInput.value = data.nombreComercial;
+                        nombreComercialInput.style.backgroundColor = '#e7f5e7'; // Verde - dato oficial
+                    } else {
+                        // No tiene nombre comercial, sugerir razón social
+                        nombreComercialInput.value = data.razonSocial || '';
+                        nombreComercialInput.style.backgroundColor = '#fff9e6'; // Amarillo - editable
+                    }
+                }
+                
+                if (data.direccion) {
+                    // Combinar dirección completa
+                    const direccionCompleta = `${data.direccion}, ${data.distrito || ''}, ${data.provincia || ''}, ${data.departamento || ''}`.replace(/, ,/g, ',').replace(/,$/, '');
+                    direccionNegocioInput.value = direccionCompleta;
+                }
+                
+                // Hacer los campos de solo lectura y cambiar color (excepto nombreComercial que es editable)
+                razonSocialInput.readOnly = true;
+                razonSocialInput.style.backgroundColor = '#e7f5e7';
+                direccionNegocioInput.readOnly = true;
+                direccionNegocioInput.style.backgroundColor = '#e7f5e7';
+                
+                // Mostrar mensaje de éxito
+                const successMsg = document.createElement('div');
+                successMsg.className = 'alert alert-success mt-2';
+                successMsg.innerHTML = '<i class="fas fa-check-circle"></i> RUC verificado correctamente';
+                rucInput.parentElement.appendChild(successMsg);
+                setTimeout(() => successMsg.remove(), 3000);
+                
+            } catch (error) {
+                console.error('❌ Error consultando RUC:', error);
+                rucInput.classList.remove('is-valid');
+                rucInput.classList.add('is-invalid');
+                
+                // Limpiar y permitir edición manual
+                const razonSocialInput = document.getElementById('razonSocial');
+                const nombreComercialInput = document.getElementById('nombreComercial');
+                const direccionNegocioInput = document.getElementById('direccionNegocio');
+                
+                razonSocialInput.readOnly = false;
+                razonSocialInput.style.backgroundColor = '';
+                nombreComercialInput.style.backgroundColor = '';
+                direccionNegocioInput.readOnly = false;
+                direccionNegocioInput.style.backgroundColor = '';
+                
+                // Mostrar mensaje de error
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'alert alert-warning mt-2';
+                errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> RUC no encontrado. Ingrese los datos manualmente.';
+                rucInput.parentElement.appendChild(errorMsg);
+                setTimeout(() => errorMsg.remove(), 5000);
+            }
+        }
+        
+        // Auto-consultar cuando se complete el RUC (11 dígitos)
         rucInput.addEventListener('input', function() {
-            const ruc = this.value;
+            const ruc = this.value.replace(/[^0-9]/g, '');
+            this.value = ruc;
+            
+            // Limpiar clases de validación
+            this.classList.remove('is-valid', 'is-invalid');
+            
             if (ruc.length === 11) {
-                // Validación básica del RUC peruano
+                // Validar que empiece con 10 o 20
                 if (ruc.startsWith('10') || ruc.startsWith('20')) {
-                    this.classList.add('is-valid');
-                    this.classList.remove('is-invalid');
+                    // Auto-consultar el RUC
+                    consultarRUC(ruc);
                 } else {
                     this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
                 }
-            } else if (ruc.length > 0) {
-                this.classList.remove('is-valid');
-                this.classList.add('is-invalid');
-            } else {
+            } else if (ruc.length > 0 && ruc.length < 11) {
+                // Mostrar cuántos dígitos faltan
+                const faltantes = 11 - ruc.length;
+                console.log(`Faltan ${faltantes} dígitos`);
+            }
+        });
+        
+        // Permitir edición manual si se borra el RUC
+        rucInput.addEventListener('blur', function() {
+            if (this.value.length === 0) {
+                const razonSocialInput = document.getElementById('razonSocial');
+                const nombreComercialInput = document.getElementById('nombreComercial');
+                const direccionNegocioInput = document.getElementById('direccionNegocio');
+                
+                razonSocialInput.readOnly = false;
+                razonSocialInput.style.backgroundColor = '';
+                razonSocialInput.value = '';
+                
+                nombreComercialInput.style.backgroundColor = '';
+                nombreComercialInput.value = '';
+                
+                direccionNegocioInput.readOnly = false;
+                direccionNegocioInput.style.backgroundColor = '';
+                direccionNegocioInput.value = '';
+                
                 this.classList.remove('is-valid', 'is-invalid');
             }
         });

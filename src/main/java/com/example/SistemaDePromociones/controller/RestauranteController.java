@@ -39,10 +39,13 @@ public class RestauranteController {
     public String mostrarFormulario(Model model) {
         // Cargar departamentos para los selects usando JDBC
         List<Departamento> departamentos = departamentoRepository.findAllActivos();
+        System.out.println("🏪 [RESTAURANTE] Departamentos cargados: " + departamentos.size());
+        departamentos.forEach(d -> System.out.println("   - " + d.getCodigo() + ": " + d.getNombre()));
         model.addAttribute("departamentos", departamentos);
         
         // Cargar categorías para los checkboxes
         List<Categoria> categorias = categoriaRepository.findByEstadoTrue();
+        System.out.println("🏪 [RESTAURANTE] Categorías cargadas: " + categorias.size());
         model.addAttribute("categorias", categorias);
         
         return "registro-Restaurante";

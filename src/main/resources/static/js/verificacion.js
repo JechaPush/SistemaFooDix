@@ -15,6 +15,7 @@ document.getElementById('emailForm').addEventListener('submit', async function(e
     e.preventDefault();
     
     const email = document.getElementById('email').value;
+    const tipo = document.getElementById('tipoRegistro').value || 'usuario';
     const submitBtn = this.querySelector('button[type="submit"]');
     
     // Validar email
@@ -35,6 +36,9 @@ document.getElementById('emailForm').addEventListener('submit', async function(e
         // Llamada REAL al backend
         const formData = new URLSearchParams();
         formData.append('email', email);
+        formData.append('tipo', tipo); // Agregar el tipo
+        
+        console.log('📧 Enviando código a:', email, 'Tipo:', tipo);
         
         const response = await fetch('/auth/send-code', {
             method: 'POST',
@@ -44,14 +48,18 @@ document.getElementById('emailForm').addEventListener('submit', async function(e
             body: formData
         });
         
+        console.log('📬 Respuesta recibida:', response.status);
+        
         const result = await response.text();
+        console.log('📄 Resultado:', result);
+        
         const data = JSON.parse(result);
         
         if (data.success) {
             // Éxito: mostrar formulario de verificación
             codeModal.hide();
             showVerificationForm();
-            showAlert('Código enviado exitosamente', 'success');
+            showAlert('Código enviado exitosamente. Revisa tu correo.', 'success');
         } else {
             // Error: mostrar mensaje
             codeModal.hide();
@@ -59,7 +67,7 @@ document.getElementById('emailForm').addEventListener('submit', async function(e
         }
         
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Error:', error);
         codeModal.hide();
         showAlert('Error de conexión. Intenta nuevamente.', 'danger');
     } finally {

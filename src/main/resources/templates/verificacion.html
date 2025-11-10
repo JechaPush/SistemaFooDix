@@ -67,6 +67,7 @@
 
                         <!-- Formulario de correo electrónico -->
                         <form id="emailForm" action="/auth/send-code" th:action="@{/auth/send-code}" method="post" class="needs-validation">
+                            <input type="hidden" id="tipoRegistro" name="tipo" th:value="${tipoRegistro != null ? tipoRegistro : 'usuario'}">
                             <div class="mb-3">
                                 <label for="email" class="form-label">Correo Electrónico</label>
                                 <input type="email" class="form-control" id="email" name="email" required>
