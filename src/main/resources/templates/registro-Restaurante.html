@@ -200,8 +200,14 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="correoElectronico" class="form-label">Correo Electrónico *</label>
                                     <input type="email" class="form-control" id="correoElectronico" name="correoElectronico" 
+                                           th:value="${verifiedEmail ?: ''}"
+                                           th:readonly="${verifiedEmail != null}"
+                                           th:style="${verifiedEmail != null ? 'background-color: #e7f5e7;' : ''}"
                                            required maxlength="50">
-                                    <div class="form-text text-muted">Usarás este correo para iniciar sesión</div>
+                                    <div class="form-text" th:classappend="${verifiedEmail != null ? 'text-success' : 'text-muted'}">
+                                        <span th:if="${verifiedEmail != null}">✓ Email verificado</span>
+                                        <span th:if="${verifiedEmail == null}">Usarás este correo para iniciar sesión</span>
+                                    </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="contrasena" class="form-label">Contraseña *</label>
@@ -378,10 +384,10 @@
                             <!-- Subida de Documentos -->
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="documentoRuc" class="form-label">Copia del RUC *</label>
-                                    <input type="file" class="form-control" id="documentoRuc" name="documentoRuc" 
+                                    <label for="cartaRestaurante" class="form-label">Carta del Restaurante *</label>
+                                    <input type="file" class="form-control" id="cartaRestaurante" name="cartaRestaurante" 
                                            accept=".pdf,.jpg,.jpeg,.png" required>
-                                    <div class="form-text text-muted">Formato: PDF, JPG, PNG (máx. 5MB)</div>
+                                    <div class="form-text text-muted">Menú o carta de productos - Formato: PDF, JPG, PNG (máx. 5MB)</div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="licenciaFuncionamiento" class="form-label">Licencia de Funcionamiento</label>
@@ -393,10 +399,10 @@
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="carnetSanidad" class="form-label">Carnet de Sanidad</label>
+                                    <label for="carnetSanidad" class="form-label">Carnet de Sanidad *</label>
                                     <input type="file" class="form-control" id="carnetSanidad" name="carnetSanidad" 
-                                           accept=".pdf,.jpg,.jpeg,.png">
-                                    <div class="form-text text-muted">Opcional - Formato: PDF, JPG, PNG (máx. 5MB)</div>
+                                           accept=".pdf,.jpg,.jpeg,.png" required>
+                                    <div class="form-text text-muted">Documento obligatorio - Formato: PDF, JPG, PNG (máx. 5MB)</div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="logo" class="form-label">Logo del Restaurante</label>
@@ -790,7 +796,7 @@
         
         // ==================== VALIDACIÓN DE ARCHIVOS ====================
         const fileInputs = [
-            { input: document.getElementById('documentoRuc'), maxSize: 5 * 1024 * 1024 },
+            { input: document.getElementById('cartaRestaurante'), maxSize: 5 * 1024 * 1024 },
             { input: document.getElementById('licenciaFuncionamiento'), maxSize: 5 * 1024 * 1024 },
             { input: document.getElementById('carnetSanidad'), maxSize: 5 * 1024 * 1024 },
             { input: document.getElementById('logo'), maxSize: 2 * 1024 * 1024 }
@@ -1038,6 +1044,11 @@
                 const data = await response.json();
                 console.log('✅ RUC encontrado:', data);
                 
+                // Verificar si el RUC tiene datos válidos
+                if (!data.razonSocial || data.razonSocial.trim() === '') {
+                    throw new Error('RUC sin datos - El RUC no existe o no está registrado en SUNAT');
+                }
+                
                 // Auto-completar los campos
                 razonSocialInput.value = data.razonSocial || '';
                 
@@ -1093,8 +1104,8 @@
                 
                 // Mostrar mensaje de error
                 const errorMsg = document.createElement('div');
-                errorMsg.className = 'alert alert-warning mt-2';
-                errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> RUC no encontrado. Ingrese los datos manualmente.';
+                errorMsg.className = 'alert alert-danger mt-2';
+                errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <strong>RUC no encontrado.</strong> El número ingresado no existe en el registro de SUNAT. Por favor, verifica el número o ingresa los datos manualmente.';
                 rucInput.parentElement.appendChild(errorMsg);
                 setTimeout(() => errorMsg.remove(), 5000);
             }

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 /**
  * Entidad DocumentoRestaurante - Almacena los documentos legales del restaurante
- * (RUC, Licencia de Funcionamiento, Carnet de Sanidad, etc.)
+ * (Carta del Restaurante, Licencia de Funcionamiento, Carnet de Sanidad, etc.)
  */
 @Entity
 @Table(name = "DocumentoRestaurante")
@@ -54,7 +54,7 @@ public class DocumentoRestaurante {
      * Enum para los tipos de documentos de restaurante
      */
     public enum TipoDocumentoRestaurante {
-        RUC,
+        CARTA_RESTAURANTE,
         LicenciaFuncionamiento,
         CarnetSanidad,
         Otros

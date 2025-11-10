@@ -47,7 +47,7 @@ public class RestauranteRegistroDTO {
     private List<Long> categorias;
     
     // Archivos - Documentos
-    private MultipartFile documentoRuc;
+    private MultipartFile cartaRestaurante;
     private MultipartFile licenciaFuncionamiento;
     private MultipartFile carnetSanidad;
     

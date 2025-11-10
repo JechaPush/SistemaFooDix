@@ -85,13 +85,13 @@ public class RestauranteService {
     /*
     // CÓDIGO COMENTADO TEMPORALMENTE - Implementar con JDBC después
     public void guardarCategoriasYDocumentos(Long codigoRestaurante, RestauranteRegistroDTO dto) {
-            dto.getDocumentoRuc(), 
+            dto.getCartaRestaurante(), 
             "restaurantes/" + restaurante.getCodigo() + "/documentos"
         );
         if (rutaRuc != null) {
             DocumentoRestaurante docRuc = new DocumentoRestaurante();
             docRuc.setCodigoRestaurante(restaurante.getCodigo());
-            docRuc.setTipoDocumento(DocumentoRestaurante.TipoDocumentoRestaurante.RUC);
+            docRuc.setTipoDocumento(DocumentoRestaurante.TipoDocumentoRestaurante.CARTA_RESTAURANTE);
             docRuc.setRutaArchivo(rutaRuc);
             docRuc.setEstado(true);
             entityManager.persist(docRuc);

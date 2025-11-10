@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpSession;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -50,8 +51,16 @@ public class HomeController {
      * Página de selección de tipo de registro
      */
     @GetMapping("/registro")
-    public String registro(Model model) {
+    public String registro(Model model, HttpSession session) {
         System.out.println("👤 [REGISTRO USUARIO] Cargando formulario de registro");
+        
+        // Obtener email verificado de la sesión
+        String verifiedEmail = (String) session.getAttribute("verifiedEmail");
+        if (verifiedEmail != null) {
+            model.addAttribute("verifiedEmail", verifiedEmail);
+            System.out.println("📧 [REGISTRO] Email verificado encontrado: " + verifiedEmail);
+        }
+        
         List<Departamento> departamentos = departamentoRepository.findAllActivos();
         System.out.println("👤 [REGISTRO USUARIO] Departamentos cargados: " + departamentos.size());
         departamentos.forEach(d -> System.out.println("   - " + d.getCodigo() + ": " + d.getNombre()));

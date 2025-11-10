@@ -7,6 +7,7 @@ import com.example.SistemaDePromociones.model.TipoVehiculo;
 import com.example.SistemaDePromociones.repository.jdbc.DepartamentoJdbcRepository;
 import com.example.SistemaDePromociones.repository.TipoVehiculoRepository;
 import com.example.SistemaDePromociones.service.RepartidorService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,7 +37,14 @@ public class RepartidorController {
      * GET /registro-repartidor
      */
     @GetMapping
-    public String mostrarFormulario(Model model) {
+    public String mostrarFormulario(Model model, HttpSession session) {
+        // Obtener email verificado de la sesión
+        String verifiedEmail = (String) session.getAttribute("verifiedEmail");
+        if (verifiedEmail != null) {
+            model.addAttribute("verifiedEmail", verifiedEmail);
+            System.out.println("📧 [REPARTIDOR] Email verificado encontrado: " + verifiedEmail);
+        }
+        
         // Cargar departamentos para el select usando JDBC
         List<Departamento> departamentos = departamentoRepository.findAllActivos();
         System.out.println("🔍 Departamentos cargados: " + departamentos.size());

@@ -115,7 +115,17 @@ public class DocumentValidationService {
             // Crear request entity
             HttpEntity<String> entity = new HttpEntity<>(headers);
             
-            // Hacer la petición y mapear a MiApiRucResponseDTO
+            // Primero obtenemos la respuesta como String para ver qué llega
+            ResponseEntity<String> rawResponse = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                entity,
+                String.class
+            );
+            
+            System.out.println("📥 [RUC] Respuesta RAW de MiAPI: " + rawResponse.getBody());
+            
+            // Ahora intentamos mapear a MiApiRucResponseDTO
             ResponseEntity<MiApiRucResponseDTO> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -124,10 +134,12 @@ public class DocumentValidationService {
             );
             
             MiApiRucResponseDTO miApiResponse = response.getBody();
-            System.out.println("📥 [RUC] Respuesta de MiAPI: " + miApiResponse);
+            System.out.println("📥 [RUC] Respuesta parseada de MiAPI: " + miApiResponse);
             
             // Verificar que la respuesta sea exitosa
             if (miApiResponse == null || !miApiResponse.isSuccess() || miApiResponse.getDatos() == null) {
+                System.err.println("❌ [RUC] Respuesta inválida: success=" + (miApiResponse != null ? miApiResponse.isSuccess() : "null") + 
+                                 ", datos=" + (miApiResponse != null ? miApiResponse.getDatos() : "null"));
                 throw new RuntimeException("RUC no encontrado o respuesta inválida");
             }
             

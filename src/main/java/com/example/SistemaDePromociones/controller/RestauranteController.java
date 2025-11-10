@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpSession;
 
 import java.util.List;
 
@@ -36,7 +37,14 @@ public class RestauranteController {
      * GET /registro-restaurante
      */
     @GetMapping
-    public String mostrarFormulario(Model model) {
+    public String mostrarFormulario(Model model, HttpSession session) {
+        // Obtener email verificado de la sesión
+        String verifiedEmail = (String) session.getAttribute("verifiedEmail");
+        if (verifiedEmail != null) {
+            model.addAttribute("verifiedEmail", verifiedEmail);
+            System.out.println("📧 [RESTAURANTE] Email verificado encontrado: " + verifiedEmail);
+        }
+        
         // Cargar departamentos para los selects usando JDBC
         List<Departamento> departamentos = departamentoRepository.findAllActivos();
         System.out.println("🏪 [RESTAURANTE] Departamentos cargados: " + departamentos.size());

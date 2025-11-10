@@ -219,8 +219,14 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="CorreoElectronico" class="form-label">Correo Electrónico *</label>
                                     <input type="email" class="form-control" id="CorreoElectronico" name="CorreoElectronico" 
+                                           th:value="${verifiedEmail ?: ''}"
+                                           th:readonly="${verifiedEmail != null}"
+                                           th:style="${verifiedEmail != null ? 'background-color: #e7f5e7;' : ''}"
                                            required maxlength="50">
-                                    <div class="form-text text-muted">Usarás este correo para iniciar sesión</div>
+                                    <div class="form-text" th:classappend="${verifiedEmail != null ? 'text-success' : 'text-muted'}">
+                                        <span th:if="${verifiedEmail != null}">✓ Email verificado</span>
+                                        <span th:if="${verifiedEmail == null}">Usarás este correo para iniciar sesión</span>
+                                    </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="Contrasena" class="form-label">Contraseña *</label>
